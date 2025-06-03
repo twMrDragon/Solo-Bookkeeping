@@ -24,10 +24,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.solobookkeeping.ui.AccountScreen
-import com.example.solobookkeeping.ui.BookkeepingScreen
-import com.example.solobookkeeping.ui.DebtScreen
-import com.example.solobookkeeping.ui.StatisticsScreen
+import com.example.solobookkeeping.ui.screens.AccountScreen
+import com.example.solobookkeeping.ui.screens.BookkeepingScreen
+import com.example.solobookkeeping.ui.screens.DebtScreen
+import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 
 class MainActivity : ComponentActivity() {

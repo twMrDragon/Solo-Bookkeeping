@@ -1,4 +1,4 @@
-package com.example.solobookkeeping.ui
+package com.example.solobookkeeping.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
@@ -8,18 +8,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 
 @Composable
-fun DebtScreen(modifier: Modifier = Modifier) {
+fun BookkeepingScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
     ) {
-        Text("Debt Screen")
+        Text("Bookkeeping Screen")
     }
 }
 
 @Preview
 @Composable
-private fun DebtScreenPreview() {
+private fun BookkeepingScreenPreview() {
     SoloBookkeepingTheme {
-        DebtScreen()
+        BookkeepingScreen()
     }
 }
