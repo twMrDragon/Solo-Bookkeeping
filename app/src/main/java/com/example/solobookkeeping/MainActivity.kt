@@ -4,22 +4,30 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.MoneyOff
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -55,6 +63,7 @@ sealed class BottomNavItem(
     object Account : BottomNavItem("Account", Icons.Outlined.Person, "account")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val nacController = rememberNavController()
@@ -66,6 +75,30 @@ fun MainScreen() {
     )
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    when (nacController.currentBackStackEntryAsState().value?.destination?.route) {
+                        BottomNavItem.Bookkeeping.route -> {
+                            Row {
+                                Button(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {}) {
+                                    Text("Month")
+                                }
+                            }
+                        }
+
+                        else -> {}
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO: Handle settings click */ }) {
+                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Settings")
+                    }
+                },
+            )
+        },
         bottomBar = {
             NavigationBar {
                 val currentRoute =
@@ -90,9 +123,15 @@ fun MainScreen() {
         NavHost(
             navController = nacController,
             startDestination = BottomNavItem.Bookkeeping.route,
-            Modifier.padding(innerPadding)
+            Modifier.padding(innerPadding),
         ) {
-            composable(BottomNavItem.Bookkeeping.route) { BookkeepingScreen() }
+            composable(BottomNavItem.Bookkeeping.route) {
+                BookkeepingScreen(
+                    modifier = Modifier.padding(
+                        8.dp
+                    )
+                )
+            }
             composable(BottomNavItem.Debt.route) { DebtScreen() }
             composable(BottomNavItem.Statistics.route) { StatisticsScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
