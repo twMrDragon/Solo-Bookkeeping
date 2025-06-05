@@ -1,5 +1,6 @@
 package com.example.solobookkeeping
 
+import YearMonthPickerDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,11 +24,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -37,6 +42,8 @@ import com.example.solobookkeeping.ui.screens.BookkeepingScreen
 import com.example.solobookkeeping.ui.screens.DebtScreen
 import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
+import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
+import java.time.YearMonth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +73,7 @@ sealed class BottomNavItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    val bookkeepingViewModel: BookkeepingViewModel = viewModel()
     val nacController = rememberNavController()
     val items = listOf(
         BottomNavItem.Bookkeeping,
@@ -73,6 +81,9 @@ fun MainScreen() {
         BottomNavItem.Statistics,
         BottomNavItem.Account
     )
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedYear by remember { mutableStateOf(YearMonth.now().year) }
+    var selectedMonth by remember { mutableStateOf(YearMonth.now().monthValue) }
 
     Scaffold(
         topBar = {
@@ -83,8 +94,10 @@ fun MainScreen() {
                             Row {
                                 Button(
                                     modifier = Modifier.weight(1f),
-                                    onClick = {}) {
-                                    Text("Month")
+                                    onClick = {
+                                        showDialog = true
+                                    }) {
+                                    Text("${selectedYear}年${selectedMonth}月")
                                 }
                             }
                         }
@@ -129,7 +142,8 @@ fun MainScreen() {
                 BookkeepingScreen(
                     modifier = Modifier.padding(
                         8.dp
-                    )
+                    ),
+                    bookkeepingViewModel
                 )
             }
             composable(BottomNavItem.Debt.route) { DebtScreen() }
@@ -137,6 +151,16 @@ fun MainScreen() {
             composable(BottomNavItem.Account.route) { AccountScreen() }
         }
     }
+    YearMonthPickerDialog(
+        show = showDialog,
+        onDismiss = { showDialog = false },
+        onConfirm = { year, month ->
+            selectedYear = year
+            selectedMonth = month
+            showDialog = false
+            bookkeepingViewModel.loadEntriesByYearMonth(year, month)
+        }
+    )
 }
 
 @Preview
