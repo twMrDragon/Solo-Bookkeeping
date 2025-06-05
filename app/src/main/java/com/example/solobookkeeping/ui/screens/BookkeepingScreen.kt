@@ -23,19 +23,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.solobookkeeping.model.Bookkeeping
-import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
 import java.time.LocalDate
-import kotlin.random.Random
 
 @Composable
 fun BookkeepingScreen(
     modifier: Modifier = Modifier,
-    viewModel: BookkeepingViewModel = viewModel()
+    viewModel: BookkeepingViewModel,
+    onAddClick: () -> Unit
 ) {
     val groupedEntries by viewModel.groupedEntries.collectAsState()
 
@@ -61,15 +58,7 @@ fun BookkeepingScreen(
             ) {
                 Button(
                     modifier = Modifier.fillMaxSize(),
-                    onClick = {
-                        val fakeEntry = Bookkeeping(
-                            title = "午餐",
-                            depiction = "麥當勞",
-                            amount = Random.nextDouble(-500.0, 500.0),
-                            date = LocalDate.now().minusDays(Random.nextLong(0, 30))
-                        )
-                        viewModel.addBookkeeping(fakeEntry)
-                    }
+                    onClick = onAddClick
                 ) {
                     Text("新增紀錄")
                 }
@@ -140,10 +129,10 @@ fun BookkeepingCardItem(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-private fun BookkeepingScreenPreview() {
-    SoloBookkeepingTheme {
-        BookkeepingScreen(modifier = Modifier.fillMaxSize())
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun BookkeepingScreenPreview() {
+//    SoloBookkeepingTheme {
+//        BookkeepingScreen(modifier = Modifier.fillMaxSize())
+//    }
+//}

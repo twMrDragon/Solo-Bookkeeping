@@ -16,9 +16,11 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
     private var currentYear: Int = YearMonth.now().year
     private var currentMonth: Int = YearMonth.now().monthValue
 
-
     private val _groupedEntries = MutableStateFlow<Map<LocalDate, List<Bookkeeping>>>(emptyMap())
     val groupedEntries: StateFlow<Map<LocalDate, List<Bookkeeping>>> = _groupedEntries
+
+    private val _currentEntry = MutableStateFlow<Bookkeeping?>(null)
+    val currentEntry: StateFlow<Bookkeeping?> = _currentEntry
 
     init {
         loadEntriesByYearMonth(currentYear, currentMonth)
@@ -46,4 +48,7 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    fun setCurrentEntry(entry: Bookkeeping?) {
+        _currentEntry.value = entry
+    }
 }
