@@ -1,15 +1,14 @@
 package com.example.solobookkeeping.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.time.LocalDate
 
+@Entity(tableName = "bookkeeping")
 data class Bookkeeping(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val title: String,
     val depiction: String,
-    val type: BookkeepingType, // Default type is Expense
     val amount: Double,
     val date: LocalDate
 )
-
-enum class BookkeepingType {
-    INCOME, EXPENSE
-}
