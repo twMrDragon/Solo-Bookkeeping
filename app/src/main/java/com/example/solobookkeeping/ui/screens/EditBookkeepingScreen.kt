@@ -1,9 +1,11 @@
 package com.example.solobookkeeping.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +14,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -24,10 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.solobookkeeping.model.Bookkeeping
+import com.example.solobookkeeping.model.Category
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import java.time.Instant
 import java.time.LocalDate
@@ -39,6 +45,7 @@ fun EditBookkeepingScreen(
     modifier: Modifier = Modifier, onCancel: () -> Unit, onConfirm: (Bookkeeping) -> Unit
 ) {
     var isIncome by remember { mutableStateOf(true) }
+    var selectedCategory by remember { mutableStateOf(Category.FOOD) }
     var title by remember { mutableStateOf("") }
     var depiction by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
@@ -63,10 +70,13 @@ fun EditBookkeepingScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(text = "支出")
-                Switch(
-                    checked = isIncome, onCheckedChange = { isIncome = it })
+                Switch(checked = isIncome, onCheckedChange = { isIncome = it })
                 Text(text = "收入")
             }
+            CategoryGrid(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
+            )
             TextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = amount,
@@ -74,13 +84,11 @@ fun EditBookkeepingScreen(
                 label = { Text("金額") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
+            TextField(modifier = Modifier.fillMaxWidth(),
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("標題") })
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
+            TextField(modifier = Modifier.fillMaxWidth(),
                 value = depiction,
                 onValueChange = { depiction = it },
                 label = { Text("敘述") })
@@ -102,6 +110,7 @@ fun EditBookkeepingScreen(
                         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     val bookkeeping = Bookkeeping(
+                        category = selectedCategory,
                         title = title,
                         depiction = depiction,
                         amount = (amount.toDoubleOrNull() ?: 0.0) * if (isIncome) 1 else -1,
@@ -114,6 +123,48 @@ fun EditBookkeepingScreen(
 
     }
 }
+
+@Composable
+fun CategoryGrid(
+    modifier: Modifier = Modifier,
+    selectedCategory: Category,
+    onCategorySelected: (Category) -> Unit
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Category.entries.toTypedArray().toList().chunked(4).forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                for (item in rowItems) {
+                    val isSelected = item == selectedCategory
+                    Column(
+                        modifier = Modifier
+                            .clickable {
+                                onCategorySelected(item)
+                            }
+                            .weight(1f)
+                            .aspectRatio(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            item.icon,
+                            contentDescription = item.name,
+                            tint = if (isSelected) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        Text(
+                            text = item.title,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Unspecified
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Preview
 @Composable

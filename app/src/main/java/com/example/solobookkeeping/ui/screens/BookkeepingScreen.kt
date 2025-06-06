@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,7 +87,8 @@ fun BookkeepingCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row {
                 Text(
@@ -117,6 +119,11 @@ fun BookkeepingCardItem(
     Row(
         modifier = modifier
     ) {
+        Icon(
+            imageVector = entry.category.icon,
+            contentDescription = null,
+            modifier = Modifier.padding(end = 8.dp)
+        )
         Text(
             text = entry.title,
             modifier = Modifier
