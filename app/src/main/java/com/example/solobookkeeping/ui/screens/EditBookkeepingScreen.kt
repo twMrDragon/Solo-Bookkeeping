@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +43,12 @@ import java.time.ZoneId
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditBookkeepingScreen(
-    modifier: Modifier = Modifier, onCancel: () -> Unit, onConfirm: (Bookkeeping) -> Unit
+    modifier: Modifier = Modifier,
+    onCancel: () -> Unit,
+    onConfirm: (Bookkeeping) -> Unit,
+    bookkeeping: Bookkeeping? = null
 ) {
-    var isIncome by remember { mutableStateOf(true) }
+    var isIncome by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(Category.FOOD) }
     var title by remember { mutableStateOf("") }
     var depiction by remember { mutableStateOf("") }
@@ -56,6 +60,18 @@ fun EditBookkeepingScreen(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = todayMillis
     )
+
+    LaunchedEffect(bookkeeping) {
+        bookkeeping?.let {
+            isIncome = it.amount >= 0
+            title = it.title
+            depiction = it.depiction
+            amount = kotlin.math.abs(it.amount).toString()
+            selectedCategory = it.category // 如果有這個欄位
+            datePickerState.selectedDateMillis =
+                it.date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        }
+    }
 
     Box {
         Column(
@@ -74,9 +90,7 @@ fun EditBookkeepingScreen(
                 Text(text = "收入")
             }
             CategoryGrid(
-                selectedCategory = selectedCategory,
-                onCategorySelected = { selectedCategory = it }
-            )
+                selectedCategory = selectedCategory, onCategorySelected = { selectedCategory = it })
             TextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = amount,
@@ -84,11 +98,13 @@ fun EditBookkeepingScreen(
                 label = { Text("金額") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
-            TextField(modifier = Modifier.fillMaxWidth(),
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("標題") })
-            TextField(modifier = Modifier.fillMaxWidth(),
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = depiction,
                 onValueChange = { depiction = it },
                 label = { Text("敘述") })
@@ -110,6 +126,7 @@ fun EditBookkeepingScreen(
                         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     val bookkeeping = Bookkeeping(
+                        id = bookkeeping?.id ?: 0,
                         category = selectedCategory,
                         title = title,
                         depiction = depiction,
@@ -118,9 +135,8 @@ fun EditBookkeepingScreen(
                     )
                     onConfirm(bookkeeping)
                 }, modifier = Modifier.weight(1f)
-            ) { Text("保存") }
+            ) { Text(if (bookkeeping == null) "保存" else "修改") }
         }
-
     }
 }
 
@@ -128,26 +144,23 @@ fun EditBookkeepingScreen(
 fun CategoryGrid(
     modifier: Modifier = Modifier,
     selectedCategory: Category,
-    onCategorySelected: (Category) -> Unit
+    onCategorySelected: (Category) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Category.entries.toTypedArray().toList().chunked(4).forEach { rowItems ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 for (item in rowItems) {
                     val isSelected = item == selectedCategory
-                    Column(
-                        modifier = Modifier
-                            .clickable {
-                                onCategorySelected(item)
-                            }
-                            .weight(1f)
-                            .aspectRatio(1f),
+                    Column(modifier = Modifier
+                        .clickable {
+                            onCategorySelected(item)
+                        }
+                        .weight(1f)
+                        .aspectRatio(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
+                        verticalArrangement = Arrangement.Center) {
                         Icon(
                             item.icon,
                             contentDescription = item.name,
@@ -166,7 +179,7 @@ fun CategoryGrid(
 }
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun Preview() {
     SoloBookkeepingTheme {

@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -152,6 +153,11 @@ fun MainScreen() {
                     modifier = Modifier.padding(
                         8.dp
                     ), viewModel = bookkeepingViewModel, onAddClick = {
+                        bookkeepingViewModel.setCurrentEntry(null)
+                        navController.navigate("edit_bookkeeping")
+                    },
+                    onEntryClick = { bookkeeping ->
+                        bookkeepingViewModel.setCurrentEntry(bookkeeping)
                         navController.navigate("edit_bookkeeping")
                     })
             }
@@ -159,18 +165,24 @@ fun MainScreen() {
             composable(BottomNavItem.Statistics.route) { StatisticsScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
             composable("edit_bookkeeping") {
+                val modifyBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
                 EditBookkeepingScreen(
                     modifier = Modifier.padding(
                         8.dp
                     ),
-//                    viewModel = viewModel(),
                     onCancel = {
                         navController.navigateUp()
                     },
                     onConfirm = { bookkeeping ->
-                        bookkeepingViewModel.addBookkeeping(bookkeeping)
+                        if (modifyBookkeeping == null) {
+                            bookkeepingViewModel.addBookkeeping(bookkeeping)
+                        } else {
+                            bookkeepingViewModel.updateBookkeeping(bookkeeping)
+                        }
                         navController.navigateUp()
-                    })
+                    },
+                    bookkeeping = modifyBookkeeping
+                )
             }
         }
     }
