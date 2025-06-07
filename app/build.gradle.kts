@@ -66,4 +66,6 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+    //自動換行
+    implementation ("com.google.accompanist:accompanist-flowlayout:0.36.0")
 }

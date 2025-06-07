@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.solobookkeeping.data.AppDatabase
 import com.example.solobookkeeping.model.Bookkeeping
 import com.example.solobookkeeping.model.Category
+import com.example.solobookkeeping.model.ExpenseCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,8 +16,10 @@ import kotlin.math.abs
 
 class BookkeepingViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getDatabase(application).bookkeepingDao()
-    private var currentYear: Int = YearMonth.now().year
-    private var currentMonth: Int = YearMonth.now().monthValue
+    private val _currentYear = MutableStateFlow(YearMonth.now().year)
+    val currentYear = _currentYear
+    private val _currentMonth = MutableStateFlow(YearMonth.now().monthValue)
+    val currentMonth = _currentMonth
 
     private val _groupedEntries = MutableStateFlow<Map<LocalDate, List<Bookkeeping>>>(emptyMap())
     val groupedEntries: StateFlow<Map<LocalDate, List<Bookkeeping>>> = _groupedEntries
@@ -28,26 +31,26 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
     val categoryRatios: StateFlow<Map<Category, Float>> = _categoryRatios
 
     init {
-        loadEntriesByYearMonth(currentYear, currentMonth)
+        loadEntriesByYearMonth(_currentYear.value, _currentMonth.value)
     }
 
     fun addBookkeeping(entry: Bookkeeping) {
         viewModelScope.launch {
             dao.insert(entry)
-            loadEntriesByYearMonth(currentYear, currentMonth)
+            loadEntriesByYearMonth(_currentYear.value, _currentMonth.value)
         }
     }
 
     fun updateBookkeeping(entry: Bookkeeping) {
         viewModelScope.launch {
             dao.update(entry)
-            loadEntriesByYearMonth(currentYear, currentMonth)
+            loadEntriesByYearMonth(_currentYear.value, _currentMonth.value)
         }
     }
 
     fun loadEntriesByYearMonth(year: Int, month: Int) {
-        currentYear = year
-        currentMonth = month
+        _currentYear.value = year
+        _currentMonth.value = month
 
         viewModelScope.launch {
             val allEntries = dao.getAll()
@@ -57,7 +60,7 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
             val grouped = filtered.groupBy { it.date }.toSortedMap(compareByDescending { it })
             _groupedEntries.value = grouped
 
-            val expenses = filtered.filter { it.amount < 0 }
+            val expenses = filtered.filter { it.category is ExpenseCategory }
 
             val totalExpense = expenses.sumOf { abs(it.amount) }
             val ratios = if (totalExpense != 0.0) {

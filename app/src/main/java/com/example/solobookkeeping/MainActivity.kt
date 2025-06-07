@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -46,7 +47,6 @@ import com.example.solobookkeeping.ui.screens.EditBookkeepingScreen
 import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
-import java.time.YearMonth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,8 +88,8 @@ fun MainScreen() {
         BottomNavItem.Account
     )
     var showDialog by remember { mutableStateOf(false) }
-    var selectedYear by remember { mutableStateOf(YearMonth.now().year) }
-    var selectedMonth by remember { mutableStateOf(YearMonth.now().monthValue) }
+    val currentYear by bookkeepingViewModel.currentYear.collectAsState()
+    val currentMonth by bookkeepingViewModel.currentMonth.collectAsState()
 
     Scaffold(
         topBar = {
@@ -99,10 +99,13 @@ fun MainScreen() {
                         BottomNavItem.Bookkeeping.route -> {
                             Row {
                                 Button(
-                                    modifier = Modifier.weight(1f), onClick = {
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
                                         showDialog = true
-                                    }) {
-                                    Text("${selectedYear} 年 ${selectedMonth} 月")
+                                    },
+                                    shape = MaterialTheme.shapes.small,
+                                ) {
+                                    Text("${currentYear} 年 ${currentMonth} 月")
                                 }
                             }
                         }
@@ -188,10 +191,10 @@ fun MainScreen() {
     }
     YearMonthPickerDialog(
         show = showDialog,
+        year = currentYear,
+        month = currentMonth,
         onDismiss = { showDialog = false },
         onConfirm = { year, month ->
-            selectedYear = year
-            selectedMonth = month
             showDialog = false
             bookkeepingViewModel.loadEntriesByYearMonth(year, month)
         })

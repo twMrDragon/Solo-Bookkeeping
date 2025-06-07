@@ -1,18 +1,32 @@
-
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowLeft
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.example.solobookkeeping.core.util.monthIntToAbbreviation
 import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -20,72 +34,76 @@ import java.time.YearMonth
 fun YearMonthPickerDialog(
     show: Boolean,
     onDismiss: () -> Unit,
+    year: Int = YearMonth.now().year,
+    month: Int = YearMonth.now().monthValue,
     onConfirm: (year: Int, month: Int) -> Unit
 ) {
     if (show) {
-        var selectedYear by remember { mutableStateOf(YearMonth.now().year) }
-        var selectedMonth by remember { mutableStateOf(YearMonth.now().monthValue) }
-        val years = (2000..YearMonth.now().year).toList()
-        val months = (1..12).toList()
+        var selectedYear by remember { mutableIntStateOf(year) }
+        var selectedMonth by remember { mutableIntStateOf(month) }
 
         AlertDialog(
             onDismissRequest = onDismiss,
             title = { Text("選擇年月") },
             text = {
                 Column {
-                    // 年份下拉選單
-                    var yearExpanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = yearExpanded,
-                        onExpandedChange = { yearExpanded = !yearExpanded }
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TextField(
-                            value = "$selectedYear 年",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("年") },
-                            modifier = Modifier.menuAnchor()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = yearExpanded,
-                            onDismissRequest = { yearExpanded = false }
+                        IconButton(
+                            onClick = { selectedYear-- }
                         ) {
-                            years.forEach { year ->
-                                DropdownMenuItem(
-                                    text = { Text("$year 年") },
-                                    onClick = {
-                                        selectedYear = year
-                                        yearExpanded = false
-                                    }
-                                )
-                            }
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowLeft,
+                                contentDescription = "減少年份"
+                            )
+                        }
+                        OutlinedTextField(
+                            value = selectedYear.toString(),
+                            onValueChange = {
+                                selectedYear = it.toIntOrNull() ?: 0
+                            },
+                            label = { Text("Year") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .weight(1f),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Number
+                            ),
+                        )
+                        IconButton(
+                            onClick = { if (selectedYear < YearMonth.now().year) selectedYear++ }
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowRight,
+                                contentDescription = "增加年份"
+                            )
                         }
                     }
-                    // 月份下拉選單
-                    var monthExpanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = monthExpanded,
-                        onExpandedChange = { monthExpanded = !monthExpanded }
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp), // 元素之間的垂直間距
+                        horizontalArrangement = Arrangement.spacedBy(8.dp), // 元素之間的水平間距
                     ) {
-                        TextField(
-                            value = "$selectedMonth 月",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("月") },
-                            modifier = Modifier.menuAnchor()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = monthExpanded,
-                            onDismissRequest = { monthExpanded = false }
-                        ) {
-                            months.forEach { month ->
-                                DropdownMenuItem(
-                                    text = { Text("$month 月") },
-                                    onClick = {
-                                        selectedMonth = month
-                                        monthExpanded = false
-                                    }
-                                )
+                        items(12) { monthItem ->
+                            val month = monthItem + 1
+                            val monthString = monthIntToAbbreviation(month)
+                            if (month == selectedMonth) {
+                                Button(onClick = { selectedMonth = month }) {
+                                    Text(
+                                        monthString
+                                    )
+                                }
+                            } else {
+                                OutlinedButton(onClick = { selectedMonth = month }) {
+                                    Text(
+                                        monthString
+                                    )
+                                }
                             }
                         }
                     }
