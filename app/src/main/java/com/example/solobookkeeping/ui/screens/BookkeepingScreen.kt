@@ -238,7 +238,7 @@ fun BookkeepingCardItem(
                 .weight(1f)
         )
         Text(
-            text = "%s%.2f".format(sign,entry.amount),
+            text = "%s%.2f".format(sign, entry.amount),
         )
     }
 }

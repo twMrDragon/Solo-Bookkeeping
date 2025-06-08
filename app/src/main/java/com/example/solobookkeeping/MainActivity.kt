@@ -109,7 +109,6 @@ fun MainScreen() {
                                 }
                             }
                         }
-
                         else -> {}
                     }
                 },
@@ -154,7 +153,7 @@ fun MainScreen() {
             composable(BottomNavItem.Bookkeeping.route) {
                 BookkeepingScreen(
                     modifier = Modifier.padding(
-                        8.dp
+                        16.dp
                     ), viewModel = bookkeepingViewModel, onAddClick = {
                         bookkeepingViewModel.setCurrentEntry(null)
                         navController.navigate("edit_bookkeeping")
