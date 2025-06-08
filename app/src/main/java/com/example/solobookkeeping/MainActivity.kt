@@ -19,12 +19,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +47,6 @@ import com.example.solobookkeeping.ui.screens.EditBookkeepingScreen
 import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
-import java.time.YearMonth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,8 +88,8 @@ fun MainScreen() {
         BottomNavItem.Account
     )
     var showDialog by remember { mutableStateOf(false) }
-    var selectedYear by remember { mutableStateOf(YearMonth.now().year) }
-    var selectedMonth by remember { mutableStateOf(YearMonth.now().monthValue) }
+    val currentYear by bookkeepingViewModel.currentYear.collectAsState()
+    val currentMonth by bookkeepingViewModel.currentMonth.collectAsState()
 
     Scaffold(
         topBar = {
@@ -98,14 +99,16 @@ fun MainScreen() {
                         BottomNavItem.Bookkeeping.route -> {
                             Row {
                                 Button(
-                                    modifier = Modifier.weight(1f), onClick = {
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
                                         showDialog = true
-                                    }) {
-                                    Text("${selectedYear} 年 ${selectedMonth} 月")
+                                    },
+                                    shape = MaterialTheme.shapes.small,
+                                ) {
+                                    Text("${currentYear} 年 ${currentMonth} 月")
                                 }
                             }
                         }
-
                         else -> {}
                     }
                 },
@@ -150,8 +153,13 @@ fun MainScreen() {
             composable(BottomNavItem.Bookkeeping.route) {
                 BookkeepingScreen(
                     modifier = Modifier.padding(
-                        8.dp
+                        16.dp
                     ), viewModel = bookkeepingViewModel, onAddClick = {
+                        bookkeepingViewModel.setCurrentEntry(null)
+                        navController.navigate("edit_bookkeeping")
+                    },
+                    onEntryClick = { bookkeeping ->
+                        bookkeepingViewModel.setCurrentEntry(bookkeeping)
                         navController.navigate("edit_bookkeeping")
                     })
             }
@@ -159,27 +167,33 @@ fun MainScreen() {
             composable(BottomNavItem.Statistics.route) { StatisticsScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
             composable("edit_bookkeeping") {
+                val modifyBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
                 EditBookkeepingScreen(
                     modifier = Modifier.padding(
                         8.dp
                     ),
-//                    viewModel = viewModel(),
                     onCancel = {
                         navController.navigateUp()
                     },
                     onConfirm = { bookkeeping ->
-                        bookkeepingViewModel.addBookkeeping(bookkeeping)
+                        if (modifyBookkeeping == null) {
+                            bookkeepingViewModel.addBookkeeping(bookkeeping)
+                        } else {
+                            bookkeepingViewModel.updateBookkeeping(bookkeeping)
+                        }
                         navController.navigateUp()
-                    })
+                    },
+                    bookkeeping = modifyBookkeeping
+                )
             }
         }
     }
     YearMonthPickerDialog(
         show = showDialog,
+        year = currentYear,
+        month = currentMonth,
         onDismiss = { showDialog = false },
         onConfirm = { year, month ->
-            selectedYear = year
-            selectedMonth = month
             showDialog = false
             bookkeepingViewModel.loadEntriesByYearMonth(year, month)
         })

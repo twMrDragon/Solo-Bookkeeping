@@ -1,19 +1,19 @@
 package com.example.solobookkeeping.ui.components
 
+import android.graphics.DashPathEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import kotlin.math.min
 import android.graphics.Paint as AndroidPaint
-import android.graphics.RectF as AndroidRectF
 import android.graphics.Paint.Cap as PaintCap
 import android.graphics.Paint.Style as PaintStyle
-import android.graphics.DashPathEffect
-import androidx.compose.ui.graphics.nativeCanvas
+import android.graphics.RectF as AndroidRectF
 
 data class RingChartSegment(val start: Float, val end: Float, val color: Color)
 
@@ -26,9 +26,10 @@ fun RingChart(
 ) {
     androidx.compose.foundation.Canvas(modifier = modifier) {
         val diameter = min(size.width, size.height)
-        val radius = diameter / 2f
-        val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
-        val arcSize = Size(diameter, diameter)
+        val fix = strokeWidth / 2f
+        val topLeft =
+            Offset((size.width - diameter) / 2f + fix, (size.height - diameter) / 2f + fix)
+        val arcSize = Size(diameter - strokeWidth, diameter - strokeWidth)
 
         segments.forEach { segment ->
             val sweep = (segment.end - segment.start) * 360f
