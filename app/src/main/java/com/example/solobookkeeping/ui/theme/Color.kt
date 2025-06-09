@@ -38,3 +38,4 @@ val Other =  Color(0xFF9C27B0)
 //debt
 val gain = Color(0xFF4CAF50) // 綠色，象徵收入或利潤
 val loss = Color(0xFFF44336) // 紅色，象徵支出或損失
+val netIncome = Color(0xFFFFC107) // 藍色，象徵淨額或平衡

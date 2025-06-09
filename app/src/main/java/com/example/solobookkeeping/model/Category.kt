@@ -78,22 +78,22 @@ enum class IncomeCategory(
     Salary(
         title = "薪水",
         icon = Icons.Default.AttachMoney,
-        color = Color(0xFF4CAF50)
+        color = com.example.solobookkeeping.ui.theme.Salary
     ),
     Investment(
         title = "投資",
         icon = Icons.Default.TrendingUp,
-        color = Color(0xFF2196F3)
+        color = com.example.solobookkeeping.ui.theme.Investment
     ),
     Bonus(
         title = "獎金",
         icon = Icons.Default.EmojiEvents,
-        color = Color(0xFFFFC107)
+        color = com.example.solobookkeeping.ui.theme.Bonus
     ),
     Other(
         title = "其他",
         icon = Icons.Default.MoreHoriz,
-        color = Color(0xFF9C27B0)
+        color = com.example.solobookkeeping.ui.theme.Other
     );
 }
 
