@@ -12,6 +12,7 @@ data class Debt(
     val debtType: DebtType,
     val borrowedDate: LocalDate,
     val dueDate: LocalDate? = null,
+    val isSettled: Boolean = false,
 )
 
 enum class DebtType {
