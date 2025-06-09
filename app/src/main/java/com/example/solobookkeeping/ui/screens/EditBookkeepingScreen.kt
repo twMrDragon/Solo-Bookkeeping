@@ -141,6 +141,7 @@ fun EditBookkeepingScreen(
                     amount = it
                 },
                 label = { Text("金額") },
+                singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 isError = isAmountError,
                 supportingText = {
@@ -169,6 +170,7 @@ fun EditBookkeepingScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = depiction,
+                singleLine = true,
                 onValueChange = { depiction = it },
                 label = { Text("敘述") },
             )

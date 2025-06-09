@@ -1,6 +1,7 @@
 package com.example.solobookkeeping.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -16,4 +17,7 @@ interface BookkeepingDao {
 
     @Update
     suspend fun update(bookkeeping: Bookkeeping)
+
+    @Delete
+    suspend fun delete(bookkeeping: Bookkeeping)
 }

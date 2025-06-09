@@ -7,6 +7,7 @@ import com.example.solobookkeeping.data.AppDatabase
 import com.example.solobookkeeping.model.Bookkeeping
 import com.example.solobookkeeping.model.Category
 import com.example.solobookkeeping.model.ExpenseCategory
+import com.example.solobookkeeping.model.IncomeCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -30,6 +31,12 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
     private val _categoryRatios = MutableStateFlow<Map<Category, Float>>(emptyMap())
     val categoryRatios: StateFlow<Map<Category, Float>> = _categoryRatios
 
+    private val _monthIncome = MutableStateFlow(0.0)
+    val monthIncome: StateFlow<Double> = _monthIncome
+
+    private val _monthExpense = MutableStateFlow(0.0)
+    val monthExpense: StateFlow<Double> = _monthExpense
+
     init {
         loadEntriesByYearMonth(_currentYear.value, _currentMonth.value)
     }
@@ -48,6 +55,13 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    fun deleteBookkeeping(entry: Bookkeeping) {
+        viewModelScope.launch {
+            dao.delete(entry)
+            loadEntriesByYearMonth(_currentYear.value, _currentMonth.value)
+        }
+    }
+
     fun loadEntriesByYearMonth(year: Int, month: Int) {
         _currentYear.value = year
         _currentMonth.value = month
@@ -59,6 +73,11 @@ class BookkeepingViewModel(application: Application) : AndroidViewModel(applicat
             }
             val grouped = filtered.groupBy { it.date }.toSortedMap(compareByDescending { it })
             _groupedEntries.value = grouped
+
+            _monthIncome.value = filtered.filter { it.category is IncomeCategory }
+                .sumOf { it.amount }
+            _monthExpense.value = filtered.filter { it.category is ExpenseCategory }
+                .sumOf { it.amount }
 
             val expenses = filtered.filter { it.category is ExpenseCategory }
 

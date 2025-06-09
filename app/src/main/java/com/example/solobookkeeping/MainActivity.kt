@@ -48,6 +48,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.solobookkeeping.ui.components.DeleteDialog
 import com.example.solobookkeeping.ui.screens.AccountScreen
 import com.example.solobookkeeping.ui.screens.BookkeepingScreen
 import com.example.solobookkeeping.ui.screens.DebtScreen
@@ -55,6 +56,7 @@ import com.example.solobookkeeping.ui.screens.EditBookkeepingScreen
 import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,7 +97,9 @@ fun MainScreen() {
         BottomNavItem.Statistics,
         BottomNavItem.Account
     )
-    var showDialog by remember { mutableStateOf(false) }
+    var showYearMonthDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val currentEntry by bookkeepingViewModel.currentEntry.collectAsState()
     val currentYear by bookkeepingViewModel.currentYear.collectAsState()
     val currentMonth by bookkeepingViewModel.currentMonth.collectAsState()
 
@@ -109,7 +113,7 @@ fun MainScreen() {
                                 Button(
                                     modifier = Modifier.weight(1f),
                                     onClick = {
-                                        showDialog = true
+                                        showYearMonthDialog = true
                                     },
                                     shape = MaterialTheme.shapes.small,
                                 ) {
@@ -183,7 +187,7 @@ fun MainScreen() {
             composable(BottomNavItem.Bookkeeping.route) {
                 BookkeepingScreen(
                     modifier = Modifier.padding(
-                        16.dp
+                        horizontal = 16.dp
                     ), viewModel = bookkeepingViewModel, onAddClick = {
                         bookkeepingViewModel.setCurrentEntry(null)
                         navController.navigate("edit_bookkeeping")
@@ -191,13 +195,21 @@ fun MainScreen() {
                     onEntryClick = { bookkeeping ->
                         bookkeepingViewModel.setCurrentEntry(bookkeeping)
                         navController.navigate("edit_bookkeeping")
+                    },
+                    onEntryLongClick = { bookkeeping ->
+                        bookkeepingViewModel.setCurrentEntry(bookkeeping)
+                        showDeleteDialog = true
                     })
             }
-            composable(BottomNavItem.Debt.route) { DebtScreen() }
+            composable(BottomNavItem.Debt.route) {
+                DebtScreen(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
             composable(BottomNavItem.Statistics.route) { StatisticsScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
             composable("edit_bookkeeping") {
-                val modifyBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
+//                val modifyBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
                 EditBookkeepingScreen(
                     modifier = Modifier.padding(
                         8.dp
@@ -206,27 +218,40 @@ fun MainScreen() {
                         navController.navigateUp()
                     },
                     onConfirm = { bookkeeping ->
-                        if (modifyBookkeeping == null) {
+                        if (currentEntry == null) {
                             bookkeepingViewModel.addBookkeeping(bookkeeping)
                         } else {
                             bookkeepingViewModel.updateBookkeeping(bookkeeping)
                         }
                         navController.navigateUp()
                     },
-                    bookkeeping = modifyBookkeeping
+                    bookkeeping = currentEntry
                 )
             }
         }
     }
     YearMonthPickerDialog(
-        show = showDialog,
+        show = showYearMonthDialog,
         year = currentYear,
         month = currentMonth,
-        onDismiss = { showDialog = false },
+        onDismiss = { showYearMonthDialog = false },
         onConfirm = { year, month ->
-            showDialog = false
+            showYearMonthDialog = false
             bookkeepingViewModel.loadEntriesByYearMonth(year, month)
         })
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd") // 自訂格式
+    DeleteDialog(
+        show = showDeleteDialog,
+        title = "刪除資料",
+        text = "確定要刪除 ${currentEntry?.date?.format(formatter)} ${currentEntry?.title} 嗎?",
+        onDismiss = { showDeleteDialog = false },
+        onConfirm = {
+            currentEntry?.let {
+                bookkeepingViewModel.deleteBookkeeping(it)
+            }
+            showDeleteDialog = false
+        }
+    )
 }
 
 @Preview
