@@ -71,7 +71,6 @@ fun StatisticsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
