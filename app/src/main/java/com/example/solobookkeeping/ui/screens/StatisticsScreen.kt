@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.solobookkeeping.model.Bookkeeping
+import com.example.solobookkeeping.model.Category
 import com.example.solobookkeeping.model.ExpenseCategory
 import com.example.solobookkeeping.ui.components.RingChart
 import com.example.solobookkeeping.viewmodel.StatisticsViewModel
@@ -44,7 +47,8 @@ import com.example.solobookkeeping.viewmodel.StatisticsViewModel
 @Composable
 fun StatisticsScreen(
     modifier: Modifier = Modifier,
-    statisticsViewModel: StatisticsViewModel
+    statisticsViewModel: StatisticsViewModel,
+    onCardClick: (Category) -> Unit
 ) {
 
     var showStartDialog by remember { mutableStateOf(false) }
@@ -59,14 +63,18 @@ fun StatisticsScreen(
     val groupedEntries by statisticsViewModel.groupedEntries.collectAsState()
     val categoryRatios by statisticsViewModel.categoryRatios.collectAsState()
 
+    val total = groupedEntries.values.sumOf {
+        it.sumOf { it.amount }
+    }
 
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(20.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -104,7 +112,7 @@ fun StatisticsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.width(20.dp))
+//            Spacer(modifier = Modifier.width(20.dp))
             YearMonthPickerDialog(
                 show = showStartDialog,
                 year = startYear,
@@ -138,7 +146,7 @@ fun StatisticsScreen(
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "total:123456$",
+            text = "$%.2f".format(total),
             fontSize = 24.sp, // 字體變大
             textAlign = TextAlign.Center, // 文字置中（需要配合 Modifier.fillMaxWidth()）
             modifier = Modifier.fillMaxWidth()
@@ -146,22 +154,22 @@ fun StatisticsScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
 
-        val GG = groupedEntries.entries.toList()
+//        val GG = groupedEntries.entries.toList()
         //var SBK: List<Bookkeeping> = GG.get(1).value
 
-        GG.forEach { RR ->
+        categoryRatios.forEach { (category, ratio) ->
+            val entries = groupedEntries[category] ?: emptyList()
+            val totalAmount = entries.sumOf { it.amount }.toFloat()
 
-            RR.value.forEach { ha ->
-                //if(SBK.contains(ha))
-                ForJ(
-                    entry = ha
-                )
-
-            }
-
-
+            ForJ(
+                modifier.clickable {
+                    onCardClick(category)
+                },
+                category = category,
+                ratio = ratio,
+                total = totalAmount
+            )
         }
-
     }
 
 }
@@ -170,32 +178,26 @@ fun StatisticsScreen(
 @Composable
 fun ForJ(
     modifier: Modifier = Modifier,
-    entry: Bookkeeping,
-    onEntryClick: (Bookkeeping) -> Unit = { /* Handle click */ }
+    category: Category,
+    ratio: Float,
+    total: Float
 ) {
-    val sign = when (entry.category) {
-        is ExpenseCategory -> "-"
-        else -> ""
-    }
 
 
-    val NowP = 0.8f
-    var Myprocess by remember { mutableStateOf(NowP / 1.0f) }
+//    val NowP = 0.8f
+//    var Myprocess by remember { mutableStateOf(NowP / 1.0f) }
 
     Row(
         modifier = modifier
-            .clickable {
-                onEntryClick(entry)
-            }
-            .padding(8.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = entry.category.icon,
+            imageVector = category.icon,
             contentDescription = null,
             modifier = Modifier
                 .padding(end = 8.dp)
-                .background(entry.category.color, CircleShape)
+                .background(category.color, CircleShape)
                 .padding(8.dp),
             tint = Color.White,
         )
@@ -207,14 +209,14 @@ fun ForJ(
                 .padding(end = 8.dp)
         ) {
             Text(
-                text = entry.category.title,
+                text = category.title,
             )
 
             //Spacer(modifier = Modifier.width(5.dp))
 
             LinearProgressIndicator(
-                progress = { Myprocess },
-                color = entry.category.color,
+                progress = { ratio },
+                color = category.color,
                 trackColor = Color.LightGray,
                 modifier = Modifier
                     .height(10.dp)
@@ -225,10 +227,16 @@ fun ForJ(
         }
 
 
-
-        Text(
-            text = "%s%.2f".format(sign, entry.amount),
-        )
+        Column(
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = "%.0f%%".format(ratio * 100),
+            )
+            Text(
+                text = "%.2f".format(total),
+            )
+        }
     }
 }
 

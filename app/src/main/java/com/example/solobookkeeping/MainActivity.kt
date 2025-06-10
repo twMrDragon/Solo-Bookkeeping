@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +52,7 @@ import com.example.solobookkeeping.ui.screens.BookkeepingScreen
 import com.example.solobookkeeping.ui.screens.DebtScreen
 import com.example.solobookkeeping.ui.screens.EditBookkeepingScreen
 import com.example.solobookkeeping.ui.screens.EditDebtScreen
+import com.example.solobookkeeping.ui.screens.ListCategoryScreen
 import com.example.solobookkeeping.ui.screens.ListPersonalDebtScreen
 import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
@@ -75,6 +77,8 @@ const val EDIT_BOOKKEEPING = "EDIT_BOOKKEEPING"
 
 const val LIST_PERSONAL_DEBT = "LIST_PERSONAL_DEBT"
 const val EDIT_DEBT = "EDIT_DEBT"
+
+const val LIST_CATEGORY = "LIST_CATEGORY"
 
 sealed class BottomNavItem(
     val label: String, val icon: ImageVector, val route: String
@@ -101,6 +105,7 @@ fun MainScreen() {
         currentRoute.startsWith(EDIT_BOOKKEEPING) -> false
         currentRoute.startsWith(LIST_PERSONAL_DEBT) -> false
         currentRoute.startsWith(EDIT_DEBT) -> false
+        currentRoute.startsWith(LIST_CATEGORY) -> false
         else -> true
     }
     val items = listOf(
@@ -115,6 +120,7 @@ fun MainScreen() {
     var showDeleteDebtDialog by remember { mutableStateOf(false) }
     val currentBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
     val currentDebt by debtViewModel.currentEntry.collectAsState()
+    val selectCategory by statisticsViewModel.selectCategory.collectAsState()
     val currentYear by bookkeepingViewModel.currentYear.collectAsState()
     val currentMonth by bookkeepingViewModel.currentMonth.collectAsState()
     val whoDebt by debtViewModel.who.collectAsState()
@@ -177,6 +183,21 @@ fun MainScreen() {
                         Text(
                             "${whoDebt} debt", style = MaterialTheme.typography.titleLarge
                         )
+                    }
+
+                    LIST_CATEGORY -> {
+                        selectCategory?.let {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(it.icon, contentDescription = it.title)
+                                Text(
+                                    text = it.title,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            }
+                        }
                     }
 
                     else -> {}
@@ -252,6 +273,10 @@ fun MainScreen() {
                 StatisticsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     statisticsViewModel = statisticsViewModel,
+                    onCardClick = { category ->
+                        statisticsViewModel.selectCategory(category)
+                        navController.navigate(LIST_CATEGORY)
+                    }
                 )
             }
             composable(BottomNavItem.Account.route) { AccountScreen() }
@@ -295,6 +320,15 @@ fun MainScreen() {
                     navController.navigateUp()
                 }, debt = currentDebt
                 )
+            }
+            composable(LIST_CATEGORY) {
+                selectCategory?.let {
+                    ListCategoryScreen(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        viewModel = statisticsViewModel,
+                        category = it
+                    )
+                }
             }
         }
     }
