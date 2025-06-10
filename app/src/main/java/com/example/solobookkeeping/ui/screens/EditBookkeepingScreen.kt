@@ -290,7 +290,6 @@ fun CategoryGrid(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .aspectRatio(1f)
                             .padding(8.dp)
                             .clip(MaterialTheme.shapes.small)
                             .background(if (isSelected) item.color else Color.Transparent)
