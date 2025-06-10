@@ -47,7 +47,8 @@ import com.example.solobookkeeping.viewmodel.StatisticsViewModel
 @Composable
 fun StatisticsScreen(
     modifier: Modifier = Modifier,
-    statisticsViewModel: StatisticsViewModel
+    statisticsViewModel: StatisticsViewModel,
+    onCardClick: (Category) -> Unit
 ) {
 
     var showStartDialog by remember { mutableStateOf(false) }
@@ -161,6 +162,9 @@ fun StatisticsScreen(
             val totalAmount = entries.sumOf { it.amount }.toFloat()
 
             ForJ(
+                modifier.clickable {
+                    onCardClick(category)
+                },
                 category = category,
                 ratio = ratio,
                 total = totalAmount

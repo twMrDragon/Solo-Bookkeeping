@@ -85,7 +85,7 @@ fun BookkeepingScreen(
                 onClick = onAddClick,
                 shape = MaterialTheme.shapes.small,
 
-            ) {
+                ) {
                 Text("新增紀錄")
             }
         }
@@ -206,9 +206,7 @@ fun CategoryPercentageRow(modifier: Modifier = Modifier, categoryRatios: Map<Cat
                         .padding(6.dp)
                 )
                 Text(
-                    text = "${
-                        category.title
-                    }: ${(ratio * 100).toInt()}%",
+                    text = "%s %.0f%%".format(category.title, ratio * 100),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 4.dp)
                 )
