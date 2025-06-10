@@ -9,6 +9,7 @@ data class Debt(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val who: String,
     val amount: Double,
+    val description: String,
     val debtType: DebtType,
     val borrowedDate: LocalDate,
     val dueDate: LocalDate? = null,

@@ -5,11 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -53,9 +50,12 @@ import com.example.solobookkeeping.ui.screens.AccountScreen
 import com.example.solobookkeeping.ui.screens.BookkeepingScreen
 import com.example.solobookkeeping.ui.screens.DebtScreen
 import com.example.solobookkeeping.ui.screens.EditBookkeepingScreen
+import com.example.solobookkeeping.ui.screens.EditDebtScreen
+import com.example.solobookkeeping.ui.screens.ListPersonalDebtScreen
 import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
+import com.example.solobookkeeping.viewmodel.DebtViewModel
 import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
@@ -70,6 +70,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+const val EDIT_BOOKKEEPING = "EDIT_BOOKKEEPING"
+
+const val LIST_PERSONAL_DEBT = "LIST_PERSONAL_DEBT"
+const val EDIT_DEBT = "EDIT_DEBT"
+
 sealed class BottomNavItem(
     val label: String, val icon: ImageVector, val route: String
 ) {
@@ -83,12 +88,17 @@ sealed class BottomNavItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    // viewModels
     val bookkeepingViewModel: BookkeepingViewModel = viewModel()
+    val debtViewModel: DebtViewModel = viewModel()
+    // route management
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val showBottomBar = when {
         currentRoute == null -> true
-        currentRoute.startsWith("edit_bookkeeping") -> false
+        currentRoute.startsWith(EDIT_BOOKKEEPING) -> false
+        currentRoute.startsWith(LIST_PERSONAL_DEBT) -> false
+        currentRoute.startsWith(EDIT_DEBT) -> false
         else -> true
     }
     val items = listOf(
@@ -97,11 +107,15 @@ fun MainScreen() {
         BottomNavItem.Statistics,
         BottomNavItem.Account
     )
+    // state management
     var showYearMonthDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    val currentEntry by bookkeepingViewModel.currentEntry.collectAsState()
+    var showDeleteBookkeepingDialog by remember { mutableStateOf(false) }
+    var showDeleteDebtDialog by remember { mutableStateOf(false) }
+    val currentBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
+    val currentDebt by debtViewModel.currentEntry.collectAsState()
     val currentYear by bookkeepingViewModel.currentYear.collectAsState()
     val currentMonth by bookkeepingViewModel.currentMonth.collectAsState()
+    val whoDebt by debtViewModel.who.collectAsState()
 
     Scaffold(
         topBar = {
@@ -121,7 +135,8 @@ fun MainScreen() {
                                 }
                             }
                         }
-                        BottomNavItem.Statistics.route ->{
+
+                        BottomNavItem.Statistics.route -> {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
@@ -138,11 +153,34 @@ fun MainScreen() {
                                     style = MaterialTheme.typography.titleLarge
                                 )
                             }
-
-
-
-
                         }
+
+                        BottomNavItem.Debt.route -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // 左側空間，用來平衡 icon
+                                Spacer(modifier = Modifier.width(25.dp))
+
+                                // 文字置中，使用 weight() 撐開
+                                Text(
+                                    text = "Debt",
+                                    modifier = Modifier
+                                        .weight(1f),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            }
+                        }
+
+                        LIST_PERSONAL_DEBT -> {
+                            Text(
+                                "${whoDebt} debt",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+
                         else -> {}
                     }
                 },
@@ -190,42 +228,80 @@ fun MainScreen() {
                         horizontal = 16.dp
                     ), viewModel = bookkeepingViewModel, onAddClick = {
                         bookkeepingViewModel.setCurrentEntry(null)
-                        navController.navigate("edit_bookkeeping")
+                        navController.navigate(EDIT_BOOKKEEPING)
                     },
                     onEntryClick = { bookkeeping ->
                         bookkeepingViewModel.setCurrentEntry(bookkeeping)
-                        navController.navigate("edit_bookkeeping")
+                        navController.navigate(EDIT_BOOKKEEPING)
                     },
                     onEntryLongClick = { bookkeeping ->
                         bookkeepingViewModel.setCurrentEntry(bookkeeping)
-                        showDeleteDialog = true
+                        showDeleteBookkeepingDialog = true
                     })
             }
             composable(BottomNavItem.Debt.route) {
                 DebtScreen(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    viewModel = debtViewModel,
+                    onAddClick = {
+                        debtViewModel.setCurrentEntry(null)
+                        navController.navigate("edit_debt")
+                    },
+                    onCardClick = { who ->
+                        debtViewModel.loadPersonalDebt(who)
+                        navController.navigate(LIST_PERSONAL_DEBT)
+                    },
                 )
             }
             composable(BottomNavItem.Statistics.route) { StatisticsScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
-            composable("edit_bookkeeping") {
+            composable(EDIT_BOOKKEEPING) {
 //                val modifyBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
                 EditBookkeepingScreen(
-                    modifier = Modifier.padding(
-                        8.dp
-                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     onCancel = {
                         navController.navigateUp()
                     },
                     onConfirm = { bookkeeping ->
-                        if (currentEntry == null) {
+                        if (currentBookkeeping == null) {
                             bookkeepingViewModel.addBookkeeping(bookkeeping)
                         } else {
                             bookkeepingViewModel.updateBookkeeping(bookkeeping)
                         }
                         navController.navigateUp()
                     },
-                    bookkeeping = currentEntry
+                    bookkeeping = currentBookkeeping
+                )
+            }
+            composable(LIST_PERSONAL_DEBT) {
+                ListPersonalDebtScreen(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    debtViewModel = debtViewModel,
+                    onCardClick = { debt ->
+                        debtViewModel.setCurrentEntry(debt)
+                        navController.navigate(EDIT_DEBT)
+                    },
+                    onCardLongClick = { debt ->
+                        debtViewModel.setCurrentEntry(debt)
+                        showDeleteDebtDialog = true
+                    }
+                )
+            }
+            composable(EDIT_DEBT) {
+                EditDebtScreen(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    onCancel = {
+                        navController.navigateUp()
+                    },
+                    onConfirm = { debt ->
+                        if (debtViewModel.currentEntry.value == null) {
+                            debtViewModel.addDebt(debt)
+                        } else {
+                            debtViewModel.updateDebt(debt)
+                        }
+                        navController.navigateUp()
+                    },
+                    debt = currentDebt
                 )
             }
         }
@@ -241,15 +317,27 @@ fun MainScreen() {
         })
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd") // 自訂格式
     DeleteDialog(
-        show = showDeleteDialog,
+        show = showDeleteBookkeepingDialog,
         title = "刪除資料",
-        text = "確定要刪除 ${currentEntry?.date?.format(formatter)} ${currentEntry?.title} 嗎?",
-        onDismiss = { showDeleteDialog = false },
+        text = "確定要刪除 ${currentBookkeeping?.date?.format(formatter)} ${currentBookkeeping?.title} 嗎?",
+        onDismiss = { showDeleteBookkeepingDialog = false },
         onConfirm = {
-            currentEntry?.let {
+            currentBookkeeping?.let {
                 bookkeepingViewModel.deleteBookkeeping(it)
             }
-            showDeleteDialog = false
+            showDeleteBookkeepingDialog = false
+        }
+    )
+    DeleteDialog(
+        show = showDeleteDebtDialog,
+        title = "刪除資料",
+        text = "確定要刪除 ${currentDebt?.borrowedDate?.format(formatter)} ${"$%.2f".format(currentDebt?.amount)} 嗎?",
+        onDismiss = { showDeleteDebtDialog = false },
+        onConfirm = {
+            currentDebt?.let {
+                debtViewModel.deleteDebt(it)
+            }
+            showDeleteDebtDialog = false
         }
     )
 }
