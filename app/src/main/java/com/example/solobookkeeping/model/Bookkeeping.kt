@@ -9,7 +9,7 @@ data class Bookkeeping(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val category: Category,
     val title: String,
-    val depiction: String,
+    val description: String,
     val amount: Double,
     val date: LocalDate
 )

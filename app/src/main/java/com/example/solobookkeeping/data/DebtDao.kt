@@ -15,6 +15,9 @@ interface DebtDao {
     @Query("SELECT * FROM debt")
     suspend fun getAll(): List<Debt>
 
+    @Query("SELECT * FROM debt WHERE who = :who")
+    suspend fun getPersonalDebt(who: String): List<Debt>
+
     @Update
     suspend fun update(debt: Debt)
 

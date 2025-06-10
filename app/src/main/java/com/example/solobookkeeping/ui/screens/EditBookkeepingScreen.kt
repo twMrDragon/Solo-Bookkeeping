@@ -47,6 +47,7 @@ import com.example.solobookkeeping.model.Bookkeeping
 import com.example.solobookkeeping.model.Category
 import com.example.solobookkeeping.model.ExpenseCategory
 import com.example.solobookkeeping.model.IncomeCategory
+import com.example.solobookkeeping.ui.components.TwoButtonGroup
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -68,7 +69,7 @@ fun EditBookkeepingScreen(
     var selectedIncomeCategory by remember { mutableStateOf(IncomeCategory.Salary) }
     var title by remember { mutableStateOf("") }
     var isTitleError by remember { mutableStateOf(false) }
-    var depiction by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var isAmountError by remember { mutableStateOf(false) }
 
@@ -98,7 +99,7 @@ fun EditBookkeepingScreen(
                 }
             }
             title = it.title
-            depiction = it.depiction
+            description = it.description
             amount = kotlin.math.abs(it.amount).toString()
             selectedDateMillis =
                 it.date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -116,8 +117,9 @@ fun EditBookkeepingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            IncomeExpenseGroup(
-                isIncome = isIncome,
+            TwoButtonGroup(
+                value = isIncome,
+                titles = listOf("支出", "收入"),
                 onClick = { isIncome = it }
             )
             if (isIncome) {
@@ -169,9 +171,9 @@ fun EditBookkeepingScreen(
             )
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = depiction,
+                value = description,
                 singleLine = true,
-                onValueChange = { depiction = it },
+                onValueChange = { description = it },
                 label = { Text("敘述") },
             )
             Button(
@@ -185,7 +187,7 @@ fun EditBookkeepingScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(selectedDateText)
+                    Text("Date: ${selectedDateText}")
                     Icon(Icons.Default.CalendarToday, contentDescription = null)
                 }
             }
@@ -224,7 +226,7 @@ fun EditBookkeepingScreen(
                         id = bookkeeping?.id ?: 0,
                         category = (if (isIncome) selectedIncomeCategory else selectedExpenseCategory),
                         title = title,
-                        depiction = depiction,
+                        description = description,
                         amount = amount.toDoubleOrNull() ?: 0.0,
                         date = selectedDate ?: LocalDate.now()
                     )
@@ -263,64 +265,6 @@ fun DatePickerModal(
         }
     ) {
         DatePicker(state = datePickerState)
-    }
-}
-
-@Composable
-fun IncomeExpenseGroup(
-    modifier: Modifier = Modifier,
-    isIncome: Boolean,
-    onClick: (Boolean) -> Unit
-) {
-    val value = listOf(false, true)
-    val title = listOf("支出", "收入")
-
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        value.zip(title).forEach { (item, label) ->
-            // 動畫控制背景顏色
-            val backgroundColor by animateColorAsState(
-                if (item == isIncome) MaterialTheme.colorScheme.primary else Color.Transparent,
-                label = "background"
-            )
-
-            // 動畫控制文字顏色
-            val contentColor by animateColorAsState(
-                if (item == isIncome) Color.White else MaterialTheme.colorScheme.onSurface,
-                label = "textColor"
-            )
-
-            // 動畫控制邊框寬度
-            val borderWidth by animateDpAsState(
-                if (item == isIncome) 0.dp else 1.dp,
-                label = "border"
-            )
-
-            // 共用樣式
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(40.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(backgroundColor)
-                    .border(
-                        borderWidth,
-                        MaterialTheme.colorScheme.outline,
-                        MaterialTheme.shapes.small
-                    )
-                    .clickable { onClick(item) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = label,
-                    color = contentColor,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-        }
     }
 }
 
