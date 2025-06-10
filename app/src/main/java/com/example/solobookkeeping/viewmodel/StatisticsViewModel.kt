@@ -22,6 +22,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     private val _categoryRatios = MutableStateFlow<Map<Category, Float>>(emptyMap())
     val categoryRatios: StateFlow<Map<Category, Float>> = _categoryRatios
 
+    private val _selectCategory = MutableStateFlow<Category?>(null)
+    val selectCategory: StateFlow<Category?> = _selectCategory
+
     private val _startYear = MutableStateFlow(YearMonth.now().year)
     val startYear = _startYear
     private val _startMonth = MutableStateFlow(YearMonth.now().monthValue)
@@ -45,6 +48,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 _endMonth.value
             )
         }
+    }
+
+    fun selectCategory(category: Category) {
+        _selectCategory.value = category
     }
 
     fun loadEntriesInRange(startYear: Int, startMonth: Int, endYear: Int, endMonth: Int) {
