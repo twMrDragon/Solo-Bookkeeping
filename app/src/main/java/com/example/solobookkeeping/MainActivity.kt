@@ -56,6 +56,7 @@ import com.example.solobookkeeping.ui.screens.StatisticsScreen
 import com.example.solobookkeeping.ui.theme.SoloBookkeepingTheme
 import com.example.solobookkeeping.viewmodel.BookkeepingViewModel
 import com.example.solobookkeeping.viewmodel.DebtViewModel
+import com.example.solobookkeeping.viewmodel.StatisticsViewModel
 import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
@@ -91,6 +92,7 @@ fun MainScreen() {
     // viewModels
     val bookkeepingViewModel: BookkeepingViewModel = viewModel()
     val debtViewModel: DebtViewModel = viewModel()
+    val statisticsViewModel: StatisticsViewModel = viewModel()
     // route management
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -117,105 +119,101 @@ fun MainScreen() {
     val currentMonth by bookkeepingViewModel.currentMonth.collectAsState()
     val whoDebt by debtViewModel.who.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    when (currentRoute) {
-                        BottomNavItem.Bookkeeping.route -> {
-                            Row {
-                                Button(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = {
-                                        showYearMonthDialog = true
-                                    },
-                                    shape = MaterialTheme.shapes.small,
-                                ) {
-                                    Text("${currentYear} 年 ${currentMonth} 月")
-                                }
-                            }
-                        }
-
-                        BottomNavItem.Statistics.route -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
+    Scaffold(topBar = {
+        TopAppBar(
+            title = {
+                when (currentRoute) {
+                    BottomNavItem.Bookkeeping.route -> {
+                        Row {
+                            Button(
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    showYearMonthDialog = true
+                                },
+                                shape = MaterialTheme.shapes.small,
                             ) {
-                                // 左側空間，用來平衡 icon
-                                Spacer(modifier = Modifier.width(25.dp))
-
-                                // 文字置中，使用 weight() 撐開
-                                Text(
-                                    text = "期間總消費統計",
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
+                                Text("${currentYear} 年 ${currentMonth} 月")
                             }
                         }
+                    }
 
-                        BottomNavItem.Debt.route -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // 左側空間，用來平衡 icon
-                                Spacer(modifier = Modifier.width(25.dp))
+                    BottomNavItem.Statistics.route -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 左側空間，用來平衡 icon
+                            Spacer(modifier = Modifier.width(25.dp))
 
-                                // 文字置中，使用 weight() 撐開
-                                Text(
-                                    text = "Debt",
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                            }
-                        }
-
-                        LIST_PERSONAL_DEBT -> {
+                            // 文字置中，使用 weight() 撐開
                             Text(
-                                "${whoDebt} debt",
+                                text = "期間總消費統計",
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.titleLarge
                             )
                         }
-
-                        else -> {}
                     }
-                },
-                navigationIcon = {
-                    if (!showBottomBar) {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back")
+
+                    BottomNavItem.Debt.route -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 左側空間，用來平衡 icon
+                            Spacer(modifier = Modifier.width(25.dp))
+
+                            // 文字置中，使用 weight() 撐開
+                            Text(
+                                text = "Debt",
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleLarge
+                            )
                         }
                     }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Handle settings click */ }) {
-                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "help")
-                    }
-                },
-            )
-        }, bottomBar = {
-            if (showBottomBar) {
-                NavigationBar {
-                    items.forEach { item ->
-                        NavigationBarItem(
-                            selected = currentRoute == item.route,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(item.icon, contentDescription = item.label) },
-                            label = { Text(item.label) },
+
+                    LIST_PERSONAL_DEBT -> {
+                        Text(
+                            "${whoDebt} debt", style = MaterialTheme.typography.titleLarge
                         )
                     }
+
+                    else -> {}
+                }
+            },
+            navigationIcon = {
+                if (!showBottomBar) {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back")
+                    }
+                }
+            },
+            actions = {
+                IconButton(onClick = { /* TODO: Handle settings click */ }) {
+                    Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "help")
+                }
+            },
+        )
+    }, bottomBar = {
+        if (showBottomBar) {
+            NavigationBar {
+                items.forEach { item ->
+                    NavigationBarItem(
+                        selected = currentRoute == item.route,
+                        onClick = {
+                            navController.navigate(item.route) {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        icon = { Icon(item.icon, contentDescription = item.label) },
+                        label = { Text(item.label) },
+                    )
                 }
             }
-        }, modifier = Modifier.fillMaxSize()
+        }
+    }, modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         NavHost(
             navController = navController,
@@ -223,21 +221,18 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(BottomNavItem.Bookkeeping.route) {
-                BookkeepingScreen(
-                    modifier = Modifier.padding(
-                        horizontal = 16.dp
-                    ), viewModel = bookkeepingViewModel, onAddClick = {
-                        bookkeepingViewModel.setCurrentEntry(null)
-                        navController.navigate(EDIT_BOOKKEEPING)
-                    },
-                    onEntryClick = { bookkeeping ->
-                        bookkeepingViewModel.setCurrentEntry(bookkeeping)
-                        navController.navigate(EDIT_BOOKKEEPING)
-                    },
-                    onEntryLongClick = { bookkeeping ->
-                        bookkeepingViewModel.setCurrentEntry(bookkeeping)
-                        showDeleteBookkeepingDialog = true
-                    })
+                BookkeepingScreen(modifier = Modifier.padding(
+                    horizontal = 16.dp
+                ), viewModel = bookkeepingViewModel, onAddClick = {
+                    bookkeepingViewModel.setCurrentEntry(null)
+                    navController.navigate(EDIT_BOOKKEEPING)
+                }, onEntryClick = { bookkeeping ->
+                    bookkeepingViewModel.setCurrentEntry(bookkeeping)
+                    navController.navigate(EDIT_BOOKKEEPING)
+                }, onEntryLongClick = { bookkeeping ->
+                    bookkeepingViewModel.setCurrentEntry(bookkeeping)
+                    showDeleteBookkeepingDialog = true
+                })
             }
             composable(BottomNavItem.Debt.route) {
                 DebtScreen(
@@ -253,29 +248,31 @@ fun MainScreen() {
                     },
                 )
             }
-            composable(BottomNavItem.Statistics.route) { StatisticsScreen() }
+            composable(BottomNavItem.Statistics.route) {
+                StatisticsScreen(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    statisticsViewModel = statisticsViewModel,
+                )
+            }
             composable(BottomNavItem.Account.route) { AccountScreen() }
             composable(EDIT_BOOKKEEPING) {
 //                val modifyBookkeeping by bookkeepingViewModel.currentEntry.collectAsState()
-                EditBookkeepingScreen(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onCancel = {
-                        navController.navigateUp()
-                    },
-                    onConfirm = { bookkeeping ->
-                        if (currentBookkeeping == null) {
-                            bookkeepingViewModel.addBookkeeping(bookkeeping)
-                        } else {
-                            bookkeepingViewModel.updateBookkeeping(bookkeeping)
-                        }
-                        navController.navigateUp()
-                    },
-                    bookkeeping = currentBookkeeping
+                EditBookkeepingScreen(modifier = Modifier.padding(horizontal = 16.dp), onCancel = {
+                    navController.navigateUp()
+                }, onConfirm = { bookkeeping ->
+                    if (currentBookkeeping == null) {
+                        bookkeepingViewModel.addBookkeeping(bookkeeping)
+                    } else {
+                        bookkeepingViewModel.updateBookkeeping(bookkeeping)
+                    }
+                    navController.navigateUp()
+                    statisticsViewModel.updateEntries()
+
+                }, bookkeeping = currentBookkeeping
                 )
             }
             composable(LIST_PERSONAL_DEBT) {
-                ListPersonalDebtScreen(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                ListPersonalDebtScreen(modifier = Modifier.padding(horizontal = 16.dp),
                     debtViewModel = debtViewModel,
                     onCardClick = { debt ->
                         debtViewModel.setCurrentEntry(debt)
@@ -284,30 +281,24 @@ fun MainScreen() {
                     onCardLongClick = { debt ->
                         debtViewModel.setCurrentEntry(debt)
                         showDeleteDebtDialog = true
-                    }
-                )
+                    })
             }
             composable(EDIT_DEBT) {
-                EditDebtScreen(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onCancel = {
-                        navController.navigateUp()
-                    },
-                    onConfirm = { debt ->
-                        if (debtViewModel.currentEntry.value == null) {
-                            debtViewModel.addDebt(debt)
-                        } else {
-                            debtViewModel.updateDebt(debt)
-                        }
-                        navController.navigateUp()
-                    },
-                    debt = currentDebt
+                EditDebtScreen(modifier = Modifier.padding(horizontal = 16.dp), onCancel = {
+                    navController.navigateUp()
+                }, onConfirm = { debt ->
+                    if (debtViewModel.currentEntry.value == null) {
+                        debtViewModel.addDebt(debt)
+                    } else {
+                        debtViewModel.updateDebt(debt)
+                    }
+                    navController.navigateUp()
+                }, debt = currentDebt
                 )
             }
         }
     }
-    YearMonthPickerDialog(
-        show = showYearMonthDialog,
+    YearMonthPickerDialog(show = showYearMonthDialog,
         year = currentYear,
         month = currentMonth,
         onDismiss = { showYearMonthDialog = false },
@@ -316,8 +307,7 @@ fun MainScreen() {
             bookkeepingViewModel.loadEntriesByYearMonth(year, month)
         })
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd") // 自訂格式
-    DeleteDialog(
-        show = showDeleteBookkeepingDialog,
+    DeleteDialog(show = showDeleteBookkeepingDialog,
         title = "刪除資料",
         text = "確定要刪除 ${currentBookkeeping?.date?.format(formatter)} ${currentBookkeeping?.title} 嗎?",
         onDismiss = { showDeleteBookkeepingDialog = false },
@@ -326,20 +316,22 @@ fun MainScreen() {
                 bookkeepingViewModel.deleteBookkeeping(it)
             }
             showDeleteBookkeepingDialog = false
-        }
-    )
-    DeleteDialog(
-        show = showDeleteDebtDialog,
+            statisticsViewModel.updateEntries()
+        })
+    DeleteDialog(show = showDeleteDebtDialog,
         title = "刪除資料",
-        text = "確定要刪除 ${currentDebt?.borrowedDate?.format(formatter)} ${"$%.2f".format(currentDebt?.amount)} 嗎?",
+        text = "確定要刪除 ${currentDebt?.borrowedDate?.format(formatter)} ${
+            "$%.2f".format(
+                currentDebt?.amount
+            )
+        } 嗎?",
         onDismiss = { showDeleteDebtDialog = false },
         onConfirm = {
             currentDebt?.let {
                 debtViewModel.deleteDebt(it)
             }
             showDeleteDebtDialog = false
-        }
-    )
+        })
 }
 
 @Preview
